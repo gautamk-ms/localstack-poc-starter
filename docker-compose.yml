@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  localstack:
+    image: localstack/localstack:1.4
+    container_name: localstack
+    ports:
+      - "4566:4566"   # LocalStack edge port (APIs)
+      - "4571:4571"   # legacy UI / optional
+    environment:
+      - SERVICES=dynamodb,apigateway,ecr,ecs,cloudwatch,iam,sts
+      - DEFAULT_REGION=${AWS_REGION}
+      - DEBUG=1
+      - DATA_DIR=/var/lib/localstack/data
+      # Allow override from .env if needed:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ./localstack_data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sS http://localhost:4566/_localstack/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  fastapi:
+    build: ./fastapi
+    container_name: fastapi-service
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_ENDPOINT_URL=${AWS_ENDPOINT_URL}
+      - LOCALSTACK_HOST=${LOCALSTACK_HOST}
+    depends_on:
+      localstack:
+        condition: service_healthy
+    restart: "no"
+
