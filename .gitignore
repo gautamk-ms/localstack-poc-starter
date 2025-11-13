@@ -1,0 +1,40 @@
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Environment
+.env
+.venv
+env/
+ENV/
+
+# LocalStack data
+localstack_data/
+
+# Lambda deployment artifacts
+lambda_function.zip
+*.zip
+
+# API Gateway
+.api_id
+.ecs_task_endpoint
+
+# Test files
+test_event.json
+response.json
+sample.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+

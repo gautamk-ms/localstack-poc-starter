@@ -1,0 +1,1 @@
+Test content for awslocal upload

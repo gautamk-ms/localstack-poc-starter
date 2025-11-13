@@ -1,10 +1,11 @@
 # fastapi/Dockerfile
-# Dockerfile for FastAPI microservice that interacts with DynamoDB via LocalStack (AWS emulator)
+# Dockerfile for FastAPI microservice as Lambda Container Image
+# Uses AWS Lambda Python base image with Runtime Interface Client (RIC)
 
-FROM python:3.10-slim
+FROM public.ecr.aws/lambda/python:3.10
 
 # Set working directory
-WORKDIR /app
+WORKDIR ${LAMBDA_TASK_ROOT}
 
 # Copy dependency file
 COPY requirements.txt .
@@ -15,8 +16,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy FastAPI application code
 COPY app ./app
 
-# Expose FastAPI default port
-EXPOSE 8000
-
-# Start FastAPI using uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Set Lambda handler
+CMD ["app.lambda_handler.lambda_handler"]
