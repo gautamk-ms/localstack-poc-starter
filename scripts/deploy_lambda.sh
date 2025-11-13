@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # scripts/deploy_lambda.sh
 # Deploy FastAPI Lambda Container Image to LocalStack
+# NOTE: This script is for LocalStack PRO (container images require Pro license)
+# For LocalStack Community Edition, use deploy_lambda_zip.sh instead
+# This script is kept for reference but may not work with LocalStack CE
 set -euo pipefail
 
 # Load environment variables

@@ -21,7 +21,6 @@ lambda_function.zip
 
 # API Gateway
 .api_id
-.ecs_task_endpoint
 
 # Test files
 test_event.json
