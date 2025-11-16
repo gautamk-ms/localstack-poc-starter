@@ -5,9 +5,9 @@
 
 ## 🧭 Overview
 
-This project demonstrates how **any on-premise or bare-metal server** can be transformed into a **fully functional AWS-compatible emulation platform** — replicating cloud-native services such as **API Gateway**, **ECS**, and **DynamoDB**, without needing internet connectivity or AWS accounts.
+This project demonstrates how **any on-premise or bare-metal server** can be transformed into a **fully functional AWS-compatible emulation platform** — replicating cloud-native services such as **API Gateway**, **Lambda**, **DynamoDB**, and **S3**, without needing internet connectivity or AWS accounts.
 
-Built using **LocalStack**, **Docker**, and **FastAPI**, this setup enables organizations and developers to:
+Built using **LocalStack**, **Docker Compose**, **FastAPI**, and **AWS Lambda container images**, this setup enables organizations and developers to:
 - Design, build, and test cloud architectures offline  
 - Train teams on AWS-native concepts without cloud costs  
 - Enable **rapid prototyping**, **integration testing**, and **DevSecOps validation** locally  
@@ -40,11 +40,13 @@ This emulator bridges that gap — it creates a **"Private Cloud Sandbox"** that
 
 ```mermaid
 flowchart TD
-    A[User / Developer] -->|HTTP Request| B[API Gateway (Emulated via LocalStack)]
-    B -->|Invokes| C[FastAPI Service (ECS Equivalent in Docker)]
-    C -->|Performs CRUD| D[(DynamoDB Table - Emulated)]
-    D -->|Response| C
-    C -->|JSON Response| B
+    A[User / Developer] -->|HTTP Request| B[API Gateway (LocalStack)]
+    B -->|Invokes| C[AWS Lambda (LocalStack)]
+    C -->|Runs| E[FastAPI Container Image]
+    E -->|CRUD| D[(DynamoDB - LocalStack)]
+    E -->|Read/Write| F[(S3 Bucket - LocalStack)]
+    D -->|Response| E
+    E -->|JSON Response| B
     B -->|Returns Result| A
 ```
 
@@ -54,8 +56,8 @@ flowchart TD
 |-------|-------------|----------|
 | API Gateway (Emulated) | LocalStack API Gateway | REST routing & integration simulation |
 | Application Layer | FastAPI (Python) | Business logic microservice |
-| Compute Layer | Docker container (ECS equivalent) | Runs the FastAPI service |
-| Data Layer | LocalStack DynamoDB | Emulated NoSQL persistence |
+| Compute Layer | AWS Lambda (LocalStack) | Lambda container image running FastAPI |
+| Data Layer | LocalStack DynamoDB + S3 | Emulated NoSQL persistence + object storage |
 | Infrastructure Control | AWS CLI + Bash scripts | Automates resource provisioning |
 | Orchestration | Docker Compose | Bootstraps environment on bare metal |
 
@@ -104,7 +106,7 @@ LocalStack provides emulation for **100+ AWS services**, enabling comprehensive 
 - **SNS** - Simple Notification Service
 - **EventBridge** - Event bus service
 
-> 🔍 **Note:** This project specifically utilizes **API Gateway, DynamoDB, and ECS emulation**, but the architecture can be extended to incorporate additional services as needed.
+> 🔍 **Note:** This project specifically utilizes **API Gateway, Lambda, DynamoDB, and S3 emulation**, but the architecture can be extended to incorporate additional services as needed.
 
 ---
 
@@ -123,7 +125,7 @@ LocalStack provides emulation for **100+ AWS services**, enabling comprehensive 
 
 ### 🧠 2. Training & Skill Development
 
-- Teams can practice AWS workflows offline (API Gateway, DynamoDB, ECS, Lambda).
+- Teams can practice AWS workflows offline (API Gateway, Lambda, DynamoDB, S3).
 - Ideal for corporate upskilling, university labs, and DevOps bootcamps.
 - Builds real-world AWS experience without needing cloud accounts or budgets.
 
@@ -179,14 +181,51 @@ This initiative embodies FinOps principles — driving visibility, accountabilit
 
 | Layer | Tool / Framework | Description |
 |-------|------------------|-------------|
-| Compute | Docker, ECS (emulated) | Container-based compute runtime |
+| Compute | AWS Lambda (LocalStack) + Docker (for builds) | Lambda container image runtime for FastAPI |
 | Networking | LocalStack API Gateway | Route requests internally |
-| Data | LocalStack DynamoDB | Serverless NoSQL emulation |
+| Data | LocalStack DynamoDB + S3 | Serverless NoSQL + object storage emulation |
 | Application | Python 3.10 + FastAPI | RESTful API service |
 | Infrastructure Management | AWS CLI, Shell Scripts | Automated provisioning |
 | Orchestration | Docker Compose | Multi-container deployment |
 | Monitoring | CloudWatch (LocalStack) | Emulated metrics/logs |
 | Visualization | Mermaid diagrams | Architecture representation |
+
+---
+
+## 🚀 Quick Start — Lambda-Based Flow
+
+1. **Clone & (optionally) create a virtual environment**
+   ```bash
+   git clone <repo-url> localstack-poc-starter-repo
+   cd localstack-poc-starter-repo
+   source venv_activate.sh   # optional but recommended
+   ```
+2. **Start LocalStack**
+   ```bash
+   docker compose up -d
+   ```
+3. **Provision core resources (DynamoDB + S3 + sample data)**
+   ```bash
+   ./setup_localstack.sh
+   ```
+4. **Build & deploy the Lambda container image (LocalStack CE friendly)**
+   ```bash
+   ./scripts/deploy_lambda_zip.sh
+   ```
+5. **Create API Gateway proxy for the Lambda function**
+   ```bash
+   ./scripts/setup_apigateway.sh
+   API_ID=$(cat .api_id)
+   curl -s "http://localhost:4566/restapis/$API_ID/dev/_user_request_/" | jq .
+   ```
+6. **Inspect data via AWS CLI (pointed at LocalStack)**
+   ```bash
+   source utils/aws_cli_alias.sh
+   ./scripts/show_dynamodb_table.sh
+   awslocal s3 ls s3://poc-data-bucket/
+   ```
+
+> **Tip:** All scripts automatically use the `awslocal` wrapper, so they work even if your project path contains spaces (e.g. `Cloud Computing/…`).
 
 ---
 
@@ -207,7 +246,7 @@ This initiative embodies FinOps principles — driving visibility, accountabilit
 
 - 🧠 Add multi-node support for distributed emulation across several servers
 - 🌍 Integrate Terraform or CDK for declarative infrastructure management
-- 🧰 Implement Lambda, SQS, SNS emulations for broader AWS coverage
+- 🧰 Extend the serverless footprint with SQS, SNS, and EventBridge integrations
 - 🔒 Add SSO-based mock IAM for role simulation
 - 📊 Include FinOps metrics dashboards (Grafana + Prometheus) for cost visualization
 
