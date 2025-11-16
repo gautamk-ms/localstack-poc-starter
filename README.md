@@ -290,13 +290,5 @@ It's a strategic enabler for both enterprises and individuals — combining cost
 
 ---
 
-## 🧑‍💻 Author
-
-**Gautam Krishna**  
-M.Tech — Cloud Computing | Semester 1
-
-📚 Project Type: Assignment - 1  
-🏫 Institution: BITS Pilani - Cloud Computing
-
 > "If the cloud is expensive, emulate it.  
 > If innovation is the goal, democratize it." 🌩️
